@@ -101,10 +101,25 @@ cqlsh:killrvideo>
 
 ### Tables
 
-Let's create our first table, but before we are going to copy a video.csv file into the container:
+Let's create our first table, but before we are going to copy a `video.csv` file into the container:
 
 ```bash
+~$ docker cp video.csv cassandra:/
+```
+
+Now, we are going to create the `videos` table:
 
 ```bash
-cqlsh:killrvideo>
+cqlsh:killrvideo> CREATE TABLE videos (video_id timeuuid, added_date timestamp, description text, tittle text, user_id uuid, PRIMARY KEY (video_id));
+```
+
+And finally, we are going to insert a set of data from CSV file:
+
+```bash
+COPY videos FROM 'video.csv' WITH HEADER=true;
+Using 5 child processes
+
+Starting copy of killrvideo.videos with columns [video_id, added_date, description, tittle, user_id].
+Processed: 430 rows; Rate:     734 rows/s; Avg. rate:    1090 rows/s
+430 rows imported from 1 files in 0.395 seconds (0 skipped).
 ```
