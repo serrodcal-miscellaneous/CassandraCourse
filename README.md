@@ -45,6 +45,8 @@ Use HELP for help.
 cqlsh>
 ```
 
+*NOTE*: Or run `~$ docker exec -it cassandra cqlsh` directly.
+
 To test Cassandra, I'm going to list all keyspaces executing the following query:
 
 ```bash
@@ -116,10 +118,36 @@ cqlsh:killrvideo> CREATE TABLE videos (video_id timeuuid, added_date timestamp, 
 And finally, we are going to insert a set of data from CSV file:
 
 ```bash
-COPY videos FROM 'video.csv' WITH HEADER=true;
+cqlsh:killrvideo> COPY videos FROM 'video.csv' WITH HEADER=true;
 Using 5 child processes
 
 Starting copy of killrvideo.videos with columns [video_id, added_date, description, tittle, user_id].
 Processed: 430 rows; Rate:     734 rows/s; Avg. rate:    1090 rows/s
 430 rows imported from 1 files in 0.395 seconds (0 skipped).
+```
+
+### Composite Partition Keys
+
+Let's create a new table that allows querying videos by title and year using a composite partition key:
+
+```bash
+cqlsh:killrvideo> CREATE TABLE videos_by_title_year (title text, added_year int, added_date timestamp, description text, user_id uuid, video_id uuid, PRIMARY KEY ((title, added_year)));
+```
+
+Next step is to copy `videos_by_title_year.csv` file into the container:
+
+```bash
+~$ docker cp videos_by_title_year.csv cassandra:/
+```
+
+Now, we are able to copy data from CSV file into the new table:
+
+```bash
+cqlsh:killrvideo> COPY videos_by_title_year FROM 'videos_by_title_year.csv' WITH HEADER=true;
+```
+
+Finally, we are going to query:
+
+```bash
+cqlsh:killrvideo> SELECT * FROM videos_by_title_year WHERE title = 'Sleepy Grumpy Cat' and year = 2015;
 ```
